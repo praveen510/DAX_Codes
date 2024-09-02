@@ -1,18 +1,41 @@
-DEFINE
-    MEASURE 'Sales Data'[TotalSalesAmount] = CALCULATE(
-    SUM('Sales Data'[SalesAmount]),
-    ALL('Sales Data')
-)
-    MEASURE 'Sales Data'[SalesByRegion] = SUM('Sales Data'[SalesAmount])
-    MEASURE 'Sales Data'[PercentageOfTotalSales] = DIVIDE(
-    [SalesByRegion],
-    [TotalSalesAmount],
-    0
+A decile is a statistical term that refers to any one of ten equal parts that a data set can be divided into. 
+Deciles are used in various fields, including finance, economics, and social sciences, to analyze and interpret data distributions.
+
+Step 1: Create a Dense_Rank_Column (Sales Rank)
+
+Sales Rank = 
+RANKX(
+ ALL('Sales Data'), 
+ 'Sales Data'[SalesAmount], 
+ , 
+ DESC, 
+ Dense
 )
 
-EVALUATE
-    SUMMARIZECOLUMNS(
-        "TotalSalesAmount", 'Sales Data'[TotalSalesAmount],
-        "SalesByRegion", 'Sales Data'[SalesByRegion],
-        "PercentageOfTotalSales", 'Sales Data'[PercentageOfTotalSales]
-    )
+Step 2: Create the decile column
+Decile = 
+VAR TotalRows = COUNTROWS(ALL('Sales Data'))
+VAR SalesRank = RANKX(ALL('Sales Data'), 'Sales Data'[SalesAmount], , ASC,Dense)
+VAR RankPercentage = DIVIDE(SalesRank, TotalRows)
+RETURN
+CEILING(RankPercentage * 10, 1)
+
+Note: CEILING() means if 2.78 is the RankPercentage*10 then 3 (round up)
+Similarly, FLOOR() means if 2.78 is the RankPercentage*10 then 2 (round down)
+
+Step 3- Create the group column
+DecileGroup = 
+SWITCH(
+ TRUE(),
+ 'Sales Data'[Decile] = 1, "0-10%",
+ 'Sales Data'[Decile] = 2, "0-20%",
+ 'Sales Data'[Decile] = 3, "0-30%",
+ 'Sales Data'[Decile] = 4, "0-40%",
+ 'Sales Data'[Decile] = 5, "0-50%",
+ 'Sales Data'[Decile] = 6, "0-60%",
+ 'Sales Data'[Decile] = 7, "0-70%",
+ 'Sales Data'[Decile] = 8, "0-80%",
+ 'Sales Data'[Decile] = 9, "0-90%",
+ "0-100%"
+)
+

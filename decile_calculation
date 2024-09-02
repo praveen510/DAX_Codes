@@ -1,0 +1,18 @@
+DEFINE
+    MEASURE 'Sales Data'[TotalSalesAmount] = CALCULATE(
+    SUM('Sales Data'[SalesAmount]),
+    ALL('Sales Data')
+)
+    MEASURE 'Sales Data'[SalesByRegion] = SUM('Sales Data'[SalesAmount])
+    MEASURE 'Sales Data'[PercentageOfTotalSales] = DIVIDE(
+    [SalesByRegion],
+    [TotalSalesAmount],
+    0
+)
+
+EVALUATE
+    SUMMARIZECOLUMNS(
+        "TotalSalesAmount", 'Sales Data'[TotalSalesAmount],
+        "SalesByRegion", 'Sales Data'[SalesByRegion],
+        "PercentageOfTotalSales", 'Sales Data'[PercentageOfTotalSales]
+    )
